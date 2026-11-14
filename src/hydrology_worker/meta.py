@@ -136,6 +136,14 @@ AGENT_TEST_TASKS.extend(
             "bundled synthetic inputs and return the columns and ordering shown in its "
             "catalog example.",
         },
+        {
+            "name": "gis_class20_share",
+            "prompt": "Gauges west (x=500015, y=4100035), mid (x=500035, y=4100035) and east "
+            "(x=500055, y=4100035), in EPSG:32618, sit on the bundled synthetic DEM. Using the bundled "
+            "synthetic land cover, what percentage of each gauge's upstream catchment area is land-cover "
+            "class 20? Return station_id and pct_class_20 (a DOUBLE rounded to 1 decimal place, 0.0 when "
+            "the catchment has none), one row per gauge ordered by station_id.",
+        },
     ]
 )
 

@@ -23,3 +23,14 @@ tasks:
 
   - name: gis_landcover
     reference_sql: "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'))"
+
+  # Composed: catchments -> landcover, with a LEFT JOIN so the class-free west gauge reports 0.0.
+  - name: gis_class20_share
+    reference_sql: >-
+      WITH b AS (SELECT station_id, area_m2, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM
+      (VALUES ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0), ('east', 500055.0, 4100035.0))
+      AS g(station_id, x, y))) WHERE status = 'ok')
+      SELECT b.station_id, round(100.0 * coalesce(sum(l.area_m2) FILTER (WHERE l.class_code = 20), 0)
+      / any_value(b.area_m2), 1) AS pct_class_20
+      FROM b LEFT JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM b)) AS l
+      ON l.station_id = b.station_id GROUP BY b.station_id ORDER BY b.station_id

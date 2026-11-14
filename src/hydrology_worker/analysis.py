@@ -321,6 +321,48 @@ LAND_SQL = (
     "station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM "
     "hydrology.main.demo_input)) WHERE status='ok'))"
 )
+# Composed: delineate several gauges, feed the polygons to landcover, and join the class
+# rows back to each catchment to pick the class covering the most upstream area.
+DOMINANT_SQL = (
+    "WITH basins AS (SELECT station_id, area_m2, geometry_wkb FROM hydrology.main.catchments(("
+    "SELECT * FROM (VALUES ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0), "
+    "('east', 500055.0, 4100035.0), ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) "
+    "WHERE status = 'ok') "
+    "SELECT b.station_id, b.area_m2, arg_max(l.class_code, l.area_m2) AS dominant_class, "
+    "max(l.fraction_of_valid) AS dominant_share "
+    "FROM basins AS b JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM basins)) AS l "
+    "ON l.station_id = b.station_id GROUP BY b.station_id, b.area_m2 ORDER BY b.station_id"
+)
+DOMINANT_TEXT = (
+    "Dominant upstream land-cover class for four gauges on the synthetic valley: the two "
+    "single-cell side gauges are pure class 10 (west) and class 20 (east), while the nested "
+    "mid-valley gauge and the outlet are both mostly class 20"
+)
+DOMINANT_ROWS: list[list[Any]] = [
+    ["east", 200.0, 20, 1.0],
+    ["mid", 1600.0, 20, 0.625],
+    ["outlet", 4900.0, 20, 0.5714285714285714],
+    ["west", 200.0, 10, 1.0],
+]
+# Composed: add an upstream gauge to demo_input, delineate both nested catchments, summarize
+# each one's land cover, and subtract per class to get the area draining only to the outlet.
+INTERVENING_SQL = (
+    "WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input "
+    "UNION ALL SELECT 'mid', 500035.0, 4100035.0), "
+    "cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover(("
+    "SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) "
+    "WHERE status = 'ok'))) "
+    "SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, "
+    "sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, "
+    "outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 "
+    "FROM cover GROUP BY class_code ORDER BY class_code"
+)
+INTERVENING_TEXT = (
+    "Land cover of the intervening drainage between a mid-valley gauge and the demo outlet: "
+    "per class, outlet catchment area minus the nested upstream gauge's catchment area "
+    "(1,500 m2 of class 10 and 1,800 m2 of class 20)"
+)
+INTERVENING_ROWS: list[list[Any]] = [[10, 2100.0, 600.0, 1500.0], [20, 2800.0, 1000.0, 1800.0]]
 
 
 class Catchments(TableInOutGenerator[CatchmentArgs]):
@@ -343,8 +385,9 @@ class Catchments(TableInOutGenerator[CatchmentArgs]):
             CATCHMENTS,
             CATCH_SQL,
             [["outlet", 49, 4900.0]],
+            [(DOMINANT_TEXT, DOMINANT_SQL, DOMINANT_ROWS)],
         )
-        examples = example(CATCH_SQL, "Delineate the known synthetic valley")
+        examples = example(CATCH_SQL, "Delineate the known synthetic valley") + example(DOMINANT_SQL, DOMINANT_TEXT)
 
     @classmethod
     def on_bind(cls, params: BindParams[CatchmentArgs]) -> BindResponse:
@@ -384,8 +427,11 @@ class Landcover(TableInOutGenerator[LandcoverArgs]):
             LANDCOVER,
             LAND_SQL,
             [[4900.0, 1.0]],
+            [(INTERVENING_TEXT, INTERVENING_SQL, INTERVENING_ROWS)],
         )
-        examples = example(LAND_SQL, "Confirm the entire synthetic upstream area has classified land cover")
+        examples = example(LAND_SQL, "Confirm the entire synthetic upstream area has classified land cover") + example(
+            INTERVENING_SQL, INTERVENING_TEXT
+        )
 
     @classmethod
     def on_bind(cls, params: BindParams[LandcoverArgs]) -> BindResponse:

@@ -24,6 +24,22 @@ SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELEC
 ----
 4900.0	1.0
 
+# Composed: dominant upstream land cover for nested and side gauges (catchments -> landcover)
+query TTTT
+WITH basins AS (SELECT station_id, area_m2, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0), ('east', 500055.0, 4100035.0), ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) WHERE status = 'ok') SELECT b.station_id, b.area_m2, arg_max(l.class_code, l.area_m2) AS dominant_class, max(l.fraction_of_valid) AS dominant_share FROM basins AS b JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM basins)) AS l ON l.station_id = b.station_id GROUP BY b.station_id, b.area_m2 ORDER BY b.station_id;
+----
+east	200.0	20	1.0
+mid	1600.0	20	0.625
+outlet	4900.0	20	0.5714285714285714
+west	200.0	10	1.0
+
+# Composed: intervening land cover between a nested gauge and the demo outlet
+query TTTT
+WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input UNION ALL SELECT 'mid', 500035.0, 4100035.0), cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) WHERE status = 'ok'))) SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 FROM cover GROUP BY class_code ORDER BY class_code;
+----
+10	2100.0	600.0	1500.0
+20	2800.0	1000.0	1800.0
+
 # Empty station relation
 query T
 SELECT count(*) FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input WHERE false));

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import fields, is_dataclass
 from itertools import batched
 from pathlib import Path
@@ -111,8 +111,19 @@ def sql_type(kind: pa.DataType) -> str:
     return "VARCHAR"
 
 
-def metadata(title: str, description: str, schema: pa.Schema, sql: str, expected: list[list[Any]]) -> dict[str, str]:
-    """Publish complete GIS function docs and a deterministic SQL acceptance example."""
+def metadata(
+    title: str,
+    description: str,
+    schema: pa.Schema,
+    sql: str,
+    expected: list[list[Any]],
+    more: Sequence[tuple[str, str, list[list[Any]]]] = (),
+) -> dict[str, str]:
+    """Publish complete GIS function docs and deterministic SQL acceptance examples.
+
+    ``more`` adds further ``(description, sql, expected_result)`` executable examples,
+    such as offline queries that compose several of this worker's functions.
+    """
     return {
         **object_tags(
             title=title,
@@ -133,6 +144,7 @@ def metadata(title: str, description: str, schema: pa.Schema, sql: str, expected
         ),
         "vgi.executable_examples": json.dumps(
             [{"description": title + " on bundled synthetic data", "sql": sql, "expected_result": expected}]
+            + [{"description": text, "sql": query, "expected_result": rows} for text, query, rows in more]
         ),
     }
 

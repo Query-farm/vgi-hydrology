@@ -57,6 +57,20 @@ SELECT * FROM hydrology.main.landcover(
 ORDER BY station_id, class_code;
 ```
 
+Nested gauges compose: delineate several stations, summarize each catchment's land cover, and join the class rows back. On the bundled data, this picks the class covering the most upstream area at each gauge (class 10 at `west`, class 20 at `east`, `mid` and `outlet`):
+
+```sql
+WITH basins AS (
+  SELECT station_id, area_m2, geometry_wkb
+  FROM hydrology.main.catchments((SELECT * FROM (VALUES
+      ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0),
+      ('east', 500055.0, 4100035.0), ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y)))
+  WHERE status = 'ok')
+SELECT b.station_id, b.area_m2, arg_max(l.class_code, l.area_m2) AS dominant_class, max(l.fraction_of_valid) AS dominant_share
+FROM basins AS b JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM basins)) AS l
+  ON l.station_id = b.station_id GROUP BY b.station_id, b.area_m2 ORDER BY b.station_id;
+```
+
 WKB is an ordinary SQL BLOB with an explicit companion CRS, not an automatically transformed geometry. Use `ST_AsWKB` on input and `ST_GeomFromWKB` on output when using Spatial. Coordinates always use X/Y order. Do not join different coordinate systems without transforming them. Input IDs are retained as VARCHAR for joins. Invalid input schemas, geometries, coordinates and exceeded resource limits fail explicitly.
 
 ## Verification and provenance
