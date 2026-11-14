@@ -9,3 +9,9 @@ dist/
 build/
 *.egg-info/
 .DS_Store
+
+# Local verification evidence and runtime logs are not published.
+validation/
+*.log
+.env
+.env.*
