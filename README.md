@@ -76,3 +76,9 @@ Run `make release-check` to build a wheel from the source archive and verify its
 ## Support
 
 Source and support: [Query-farm/vgi-hydrology](https://github.com/Query-farm/vgi-hydrology). Report reproducible issues in GitHub Issues. No service is deployed and container publishing is manual-only. Keep reports tied to the input CRS, resource limits and reproducible SQL. See [LICENSE](LICENSE) for the starter's license and dependency licenses for their terms.
+
+## Executed notebook
+
+[Compare upstream catchments](notebooks/README.md) follows station snapping, land-cover
+composition and facility inclusion through the published worker, with mapped results
+and a standalone parameter experiment. It runs from the notebook directory alone.
