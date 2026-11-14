@@ -1,0 +1,51 @@
+{
+  "query": "SELECT * FROM duckdb_tables() WHERE database_name='hydrology'",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "schema_oid",
+    "table_name",
+    "table_oid",
+    "comment",
+    "tags",
+    "internal",
+    "temporary",
+    "has_primary_key",
+    "estimated_size",
+    "column_count",
+    "index_count",
+    "check_constraint_count",
+    "sql"
+  ],
+  "rows": [
+    [
+      "hydrology",
+      22592,
+      "main",
+      22593,
+      "demo_input",
+      22733,
+      "Synthetic monitoring station at the bundled valley outlet",
+      {
+        "domain": "geospatial",
+        "vgi.category": "gis",
+        "vgi.doc_llm": "One station in EPSG:32618 at the outlet of demo://basin.tif. The synthetic DEM has 49 cells of 100 square metres each. A matching landcover.tif supports area summaries without network access.",
+        "vgi.doc_md": "## Demo monitoring station\n\nOne station in EPSG:32618 at the outlet of demo://basin.tif. The synthetic DEM has 49 cells of 100 square metres each. A matching landcover.tif supports area summaries without network access.",
+        "vgi.example_queries": "[{\"description\": \"Identify the synthetic outlet\", \"sql\": \"SELECT station_id FROM hydrology.main.demo_input\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Demo monitoring station on bundled synthetic data\", \"sql\": \"SELECT station_id FROM hydrology.main.demo_input\", \"expected_result\": [[\"outlet\"]]}]",
+        "vgi.keywords": "[\"GIS\", \"geospatial\", \"hydrology\", \"analysis\", \"Arrow\", \"SQL\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"station_id\", \"type\": \"VARCHAR\", \"description\": \"Caller-owned station identity.\"}, {\"name\": \"x\", \"type\": \"DOUBLE\", \"description\": \"Station X in input_crs.\"}, {\"name\": \"y\", \"type\": \"DOUBLE\", \"description\": \"Station Y in input_crs.\"}]",
+        "vgi.title": "Demo monitoring station"
+      },
+      false,
+      false,
+      true,
+      0,
+      3,
+      1,
+      0,
+      "CREATE TABLE demo_input(station_id VARCHAR, x DOUBLE, y DOUBLE, PRIMARY KEY(station_id));"
+    ]
+  ]
+}

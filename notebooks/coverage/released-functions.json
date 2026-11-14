@@ -1,0 +1,311 @@
+{
+  "query": "SELECT * FROM duckdb_functions() WHERE database_name='hydrology'",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "function_name",
+    "alias_of",
+    "function_type",
+    "description",
+    "comment",
+    "tags",
+    "return_type",
+    "parameters",
+    "parameter_types",
+    "varargs",
+    "macro_definition",
+    "has_side_effects",
+    "internal",
+    "extension_name",
+    "function_oid",
+    "examples",
+    "stability",
+    "categories"
+  ],
+  "rows": [
+    [
+      "hydrology",
+      "22592",
+      "examples",
+      "sequence_table",
+      null,
+      "table",
+      "Generate count rows of (n, squared), stepping n by step",
+      null,
+      {
+        "vgi.category": "generators",
+        "vgi.doc_llm": "Generate a deterministic table of `count` rows with columns `n` and `squared`, where `n` runs `0, step, 2*step, ...`. `count` is positional (0 to 1,000,000); `step` is a named argument that defaults to 1, for example `sequence_table(5, step := 2)`. Rows stream back in batches, so large counts do not buffer in memory.",
+        "vgi.doc_md": "## sequence_table(count, step := 1)\n\n`count` rows of `(n, squared)` with `n = 0, step, 2*step, ...`.\n\nDeterministic, so it is handy for tests and demos.",
+        "vgi.example_queries": "[{\"description\": \"The first five values and their squares\", \"sql\": \"SELECT n, squared FROM hydrology.examples.sequence_table(5) ORDER BY n\"}, {\"description\": \"Four values stepping by ten\", \"sql\": \"SELECT n FROM hydrology.examples.sequence_table(4, step := 10) ORDER BY n\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Three rows stepping by two\", \"sql\": \"SELECT n, squared FROM hydrology.examples.sequence_table(3, step := 2) ORDER BY n\", \"expected_result\": [[0, 0], [2, 4], [4, 16]]}, {\"description\": \"Count the rows generated\", \"sql\": \"SELECT count(*) AS rows FROM hydrology.examples.sequence_table(1000)\", \"expected_result\": [[1000]]}]",
+        "vgi.keywords": "[\"sequence\", \"series\", \"range\", \"generate rows\", \"numbers\", \"squares\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"n\", \"type\": \"BIGINT\", \"description\": \"The generated value: row index times step.\"}, {\"name\": \"squared\", \"type\": \"BIGINT\", \"description\": \"n multiplied by itself.\"}]",
+        "vgi.title": "Sequence Table"
+      },
+      null,
+      [
+        "count",
+        "step"
+      ],
+      [
+        "BIGINT",
+        "BIGINT"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22599,
+      [
+        "SELECT n, squared FROM hydrology.examples.sequence_table(5) ORDER BY n",
+        "SELECT n FROM hydrology.examples.sequence_table(4, step := 10) ORDER BY n"
+      ],
+      null,
+      []
+    ],
+    [
+      "hydrology",
+      "22592",
+      "examples",
+      "fetch_items",
+      null,
+      "table",
+      "Read every item from a paginated REST API, one page per batch",
+      null,
+      {
+        "vgi.category": "api",
+        "vgi.doc_llm": "Read all items from a paginated JSON REST API at `base_url` and return them as rows `(id, name, category, price)`. Pages are requested `page_size` at a time (named argument, default 100) and streamed to DuckDB as they arrive. If a DuckDB secret of type `hydrology_api` exists its `token` is sent as a bearer token; otherwise the `HYDROLOGY_API_TOKEN` environment variable is used. Rate-limit (429) and server errors are retried with backoff.",
+        "vgi.doc_md": "## fetch_items(base_url, page_size := 100)\n\nEvery item from a paginated REST API, streamed one page per batch.\n\nAuthenticate with a `hydrology_api` secret or the `HYDROLOGY_API_TOKEN` environment variable:\n\n```sql\nCREATE SECRET (TYPE hydrology_api, TOKEN 'your-token');\n```",
+        "vgi.example_queries": "[{\"description\": \"The five priciest hardware items from the public demo API\", \"sql\": \"SELECT id, name, price FROM hydrology.examples.fetch_items('https://vgi-starter-api.query-farm.services/v1') WHERE category = 'hardware' ORDER BY price DESC LIMIT 5\"}, {\"description\": \"Summarize the API's items by category, ten per request\", \"sql\": \"SELECT category, count(*) AS items, avg(price) AS avg_price FROM hydrology.examples.fetch_items('https://vgi-starter-api.query-farm.services/v1', page_size := 10) GROUP BY category ORDER BY category\"}]",
+        "vgi.keywords": "[\"rest api\", \"http\", \"pagination\", \"fetch\", \"items\", \"json api\", \"bearer token\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"id\", \"type\": \"BIGINT\", \"description\": \"Item identifier assigned by the API.\"}, {\"name\": \"name\", \"type\": \"VARCHAR\", \"description\": \"Item display name.\"}, {\"name\": \"category\", \"type\": \"VARCHAR\", \"description\": \"Item category, e.g. 'hardware'.\"}, {\"name\": \"price\", \"type\": \"DOUBLE\", \"description\": \"Item price in US dollars.\"}]",
+        "vgi.title": "Fetch Items From API"
+      },
+      null,
+      [
+        "base_url",
+        "page_size"
+      ],
+      [
+        "VARCHAR",
+        "BIGINT"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22598,
+      [
+        "SELECT id, name, price FROM hydrology.examples.fetch_items('https://vgi-starter-api.query-farm.services/v1') WHERE category = 'hardware' ORDER BY price DESC LIMIT 5",
+        "SELECT category, count(*) AS items, avg(price) AS avg_price FROM hydrology.examples.fetch_items('https://vgi-starter-api.query-farm.services/v1', page_size := 10) GROUP BY category ORDER BY category"
+      ],
+      null,
+      []
+    ],
+    [
+      "hydrology",
+      "22592",
+      "main",
+      "landcover",
+      null,
+      "table",
+      "Summarize categorical land cover inside upstream catchment polygons",
+      null,
+      {
+        "vgi.category": "gis",
+        "vgi.doc_llm": "Count categorical raster pixel centres within catchment polygons. Returns class codes, area in square metres, class share of valid pixels, and observed coverage including out-of-raster gaps. Never averages or interpolates class codes. Supply geometry_crs matching the catchment geometry. Join catchment WKB to facility points separately with ST_Covers(ST_GeomFromWKB(geometry_wkb), facility_geom).",
+        "vgi.doc_md": "## Catchment land cover\n\nCount categorical raster pixel centres within catchment polygons. Returns class codes, area in square metres, class share of valid pixels, and observed coverage including out-of-raster gaps. Never averages or interpolates class codes. Supply geometry_crs matching the catchment geometry. Join catchment WKB to facility points separately with ST_Covers(ST_GeomFromWKB(geometry_wkb), facility_geom).",
+        "vgi.example_queries": "[{\"description\": \"Confirm the entire synthetic upstream area has classified land cover\", \"sql\": \"SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'))\"}, {\"description\": \"Land cover of the intervening drainage between a mid-valley gauge and the demo outlet: per class, outlet catchment area minus the nested upstream gauge's catchment area (1,500 m2 of class 10 and 1,800 m2 of class 20)\", \"sql\": \"WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input UNION ALL SELECT 'mid', 500035.0, 4100035.0), cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) WHERE status = 'ok'))) SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 FROM cover GROUP BY class_code ORDER BY class_code\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Catchment land cover on bundled synthetic data\", \"sql\": \"SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'))\", \"expected_result\": [[4900.0, 1.0]]}, {\"description\": \"Land cover of the intervening drainage between a mid-valley gauge and the demo outlet: per class, outlet catchment area minus the nested upstream gauge's catchment area (1,500 m2 of class 10 and 1,800 m2 of class 20)\", \"sql\": \"WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input UNION ALL SELECT 'mid', 500035.0, 4100035.0), cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) WHERE status = 'ok'))) SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 FROM cover GROUP BY class_code ORDER BY class_code\", \"expected_result\": [[10, 2100.0, 600.0, 1500.0], [20, 2800.0, 1000.0, 1800.0]]}]",
+        "vgi.keywords": "[\"GIS\", \"geospatial\", \"hydrology\", \"analysis\", \"Arrow\", \"SQL\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"station_id\", \"type\": \"VARCHAR\", \"description\": \"Caller-owned station identity.\"}, {\"name\": \"class_code\", \"type\": \"BIGINT\", \"description\": \"Integer land-cover class; NULL if the polygon has no valid raster data.\"}, {\"name\": \"pixel_count\", \"type\": \"BIGINT\", \"description\": \"Valid cell centres inside the catchment for this class.\"}, {\"name\": \"area_m2\", \"type\": \"DOUBLE\", \"description\": \"Class pixel count times source raster cell area, square metres; pixel-centre approximation.\"}, {\"name\": \"fraction_of_valid\", \"type\": \"DOUBLE\", \"description\": \"This class's share of valid observed catchment pixels.\"}, {\"name\": \"coverage_fraction\", \"type\": \"DOUBLE\", \"description\": \"Fraction of all catchment grid centres with valid land-cover observations.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"ok or no_data; unknown land cover is not classified as a real category.\"}]",
+        "vgi.title": "Catchment land cover"
+      },
+      null,
+      [
+        "data",
+        "raster",
+        "max_pixels",
+        "geometry_crs"
+      ],
+      [
+        "TABLE",
+        "VARCHAR",
+        "BIGINT",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22602,
+      [
+        "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'))",
+        "WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input UNION ALL SELECT 'mid', 500035.0, 4100035.0), cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) WHERE status = 'ok'))) SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 FROM cover GROUP BY class_code ORDER BY class_code"
+      ],
+      null,
+      []
+    ],
+    [
+      "hydrology",
+      "22592",
+      "main",
+      "demo_input",
+      null,
+      "table",
+      "Synthetic monitoring station at the bundled valley outlet",
+      null,
+      {
+        "vgi.category": "gis",
+        "vgi.doc_llm": "One station in EPSG:32618 at the outlet of demo://basin.tif. The synthetic DEM has 49 cells of 100 square metres each. A matching landcover.tif supports area summaries without network access.",
+        "vgi.doc_md": "## Demo monitoring station\n\nOne station in EPSG:32618 at the outlet of demo://basin.tif. The synthetic DEM has 49 cells of 100 square metres each. A matching landcover.tif supports area summaries without network access.",
+        "vgi.example_queries": "[{\"description\": \"Identify the synthetic outlet\", \"sql\": \"SELECT station_id FROM hydrology.main.demo_input\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Demo monitoring station on bundled synthetic data\", \"sql\": \"SELECT station_id FROM hydrology.main.demo_input\", \"expected_result\": [[\"outlet\"]]}]",
+        "vgi.keywords": "[\"GIS\", \"geospatial\", \"hydrology\", \"analysis\", \"Arrow\", \"SQL\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"station_id\", \"type\": \"VARCHAR\", \"description\": \"Caller-owned station identity.\"}, {\"name\": \"x\", \"type\": \"DOUBLE\", \"description\": \"Station X in input_crs.\"}, {\"name\": \"y\", \"type\": \"DOUBLE\", \"description\": \"Station Y in input_crs.\"}]",
+        "vgi.title": "Demo monitoring station"
+      },
+      null,
+      [],
+      [],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22601,
+      [
+        "SELECT station_id FROM hydrology.main.demo_input"
+      ],
+      null,
+      []
+    ],
+    [
+      "hydrology",
+      "22592",
+      "main",
+      "catchments",
+      null,
+      "table",
+      "Delineate upstream D8 catchments for monitoring stations",
+      null,
+      {
+        "vgi.category": "gis",
+        "vgi.doc_llm": "Delineate DEM-derived upstream catchments for monitoring-station rows, then summarize categorical land cover and spatially join facilities with the returned WKB polygons. Flow uses PyFlwDir's depression-filled D8 network. Catchments reaching the DEM boundary or nodata are flagged as potentially incomplete. Projected metre DEMs and explicit input coordinate systems are required. This is drainage analysis, not a flood model. The model fills depressions to spill points and routes one D8 downstream link per cell. Boundary-limited catchments must not be treated as globally complete. Null/invalid station coordinates fail; outside and nodata stations return explicit status rows.",
+        "vgi.doc_md": "## Upstream catchments\n\nDelineate DEM-derived upstream catchments for monitoring-station rows, then summarize categorical land cover and spatially join facilities with the returned WKB polygons. Flow uses PyFlwDir's depression-filled D8 network. Catchments reaching the DEM boundary or nodata are flagged as potentially incomplete. Projected metre DEMs and explicit input coordinate systems are required. This is drainage analysis, not a flood model. The model fills depressions to spill points and routes one D8 downstream link per cell. Boundary-limited catchments must not be treated as globally complete. Null/invalid station coordinates fail; outside and nodata stations return explicit status rows.",
+        "vgi.example_queries": "[{\"description\": \"Delineate the known synthetic valley\", \"sql\": \"SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) ORDER BY station_id\"}, {\"description\": \"Dominant upstream land-cover class for four gauges on the synthetic valley: the two single-cell side gauges are pure class 10 (west) and class 20 (east), while the nested mid-valley gauge and the outlet are both mostly class 20\", \"sql\": \"WITH basins AS (SELECT station_id, area_m2, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0), ('east', 500055.0, 4100035.0), ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) WHERE status = 'ok') SELECT b.station_id, b.area_m2, arg_max(l.class_code, l.area_m2) AS dominant_class, max(l.fraction_of_valid) AS dominant_share FROM basins AS b JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM basins)) AS l ON l.station_id = b.station_id GROUP BY b.station_id, b.area_m2 ORDER BY b.station_id\"}]",
+        "vgi.executable_examples": "[{\"description\": \"Upstream catchments on bundled synthetic data\", \"sql\": \"SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) ORDER BY station_id\", \"expected_result\": [[\"outlet\", 49, 4900.0]]}, {\"description\": \"Dominant upstream land-cover class for four gauges on the synthetic valley: the two single-cell side gauges are pure class 10 (west) and class 20 (east), while the nested mid-valley gauge and the outlet are both mostly class 20\", \"sql\": \"WITH basins AS (SELECT station_id, area_m2, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0), ('east', 500055.0, 4100035.0), ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) WHERE status = 'ok') SELECT b.station_id, b.area_m2, arg_max(l.class_code, l.area_m2) AS dominant_class, max(l.fraction_of_valid) AS dominant_share FROM basins AS b JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM basins)) AS l ON l.station_id = b.station_id GROUP BY b.station_id, b.area_m2 ORDER BY b.station_id\", \"expected_result\": [[\"east\", 200.0, 20, 1.0], [\"mid\", 1600.0, 20, 0.625], [\"outlet\", 4900.0, 20, 0.5714285714285714], [\"west\", 200.0, 10, 1.0]]}]",
+        "vgi.keywords": "[\"GIS\", \"geospatial\", \"hydrology\", \"analysis\", \"Arrow\", \"SQL\"]",
+        "vgi.result_columns_schema": "[{\"name\": \"station_id\", \"type\": \"VARCHAR\", \"description\": \"Input monitoring-station identity.\"}, {\"name\": \"cell_count\", \"type\": \"BIGINT\", \"description\": \"Number of upstream DEM cells, including the outlet cell.\"}, {\"name\": \"area_m2\", \"type\": \"DOUBLE\", \"description\": \"Cell count multiplied by projected DEM cell area, square metres.\"}, {\"name\": \"outlet_x\", \"type\": \"DOUBLE\", \"description\": \"Selected outlet cell centre X in dem_crs.\"}, {\"name\": \"outlet_y\", \"type\": \"DOUBLE\", \"description\": \"Selected outlet cell centre Y in dem_crs.\"}, {\"name\": \"snap_distance_m\", \"type\": \"DOUBLE\", \"description\": \"Euclidean distance from the supplied station to the selected cell centre, metres.\"}, {\"name\": \"boundary_limited\", \"type\": \"BOOLEAN\", \"description\": \"True if the catchment reaches the DEM boundary or missing-data boundary; extent may be incomplete.\"}, {\"name\": \"geometry_wkb\", \"type\": \"BLOB\", \"description\": \"Upstream Polygon/MultiPolygon WKB in dem_crs; use ST_GeomFromWKB for spatial joins.\"}, {\"name\": \"dem_crs\", \"type\": \"VARCHAR\", \"description\": \"Projected metre CRS for catchment geometry and outlet coordinates.\"}, {\"name\": \"status\", \"type\": \"VARCHAR\", \"description\": \"ok, outside_dem, nodata, or no_stream_within_radius.\"}]",
+        "vgi.title": "Upstream catchments"
+      },
+      null,
+      [
+        "data",
+        "min_stream_area_m2",
+        "max_cells",
+        "input_crs",
+        "snap_radius_m",
+        "dem"
+      ],
+      [
+        "TABLE",
+        "DOUBLE",
+        "BIGINT",
+        "VARCHAR",
+        "DOUBLE",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22600,
+      [
+        "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) ORDER BY station_id",
+        "WITH basins AS (SELECT station_id, area_m2, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('west', 500015.0, 4100035.0), ('mid', 500035.0, 4100035.0), ('east', 500055.0, 4100035.0), ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) WHERE status = 'ok') SELECT b.station_id, b.area_m2, arg_max(l.class_code, l.area_m2) AS dominant_class, max(l.fraction_of_valid) AS dominant_share FROM basins AS b JOIN hydrology.main.landcover((SELECT station_id, geometry_wkb FROM basins)) AS l ON l.station_id = b.station_id GROUP BY b.station_id, b.area_m2 ORDER BY b.station_id"
+      ],
+      null,
+      []
+    ],
+    [
+      "hydrology",
+      "22592",
+      "examples",
+      "greet",
+      null,
+      "scalar",
+      "Greet a name casually: greet('Ada') returns 'Hi, Ada!'",
+      null,
+      {
+        "vgi.category": "text",
+        "vgi.doc_llm": "Return a greeting for each input name in the requested tone. `style` must be a constant, either `'casual'` (`'Hi, Ada!'`) or `'formal'` (`'Good day, Ada.'`); any other value is rejected when the query is planned. NULL names produce NULL.",
+        "vgi.doc_md": "## greet(name, style)\n\nA greeting in the chosen tone: `'casual'` or `'formal'`.\n\n`greet('Ada', 'formal')` returns `'Good day, Ada.'`.",
+        "vgi.example_queries": "[{\"description\": \"Greet one name casually\", \"sql\": \"SELECT hydrology.examples.greet('Ada') AS greeting\"}, {\"description\": \"Greet one name formally\", \"sql\": \"SELECT hydrology.examples.greet('Ada', 'formal') AS greeting\"}]",
+        "vgi.keywords": "[\"greet\", \"greeting\", \"formal greeting\", \"casual greeting\", \"salutation\", \"tone\"]",
+        "vgi.title": "Greet (with tone)"
+      },
+      "VARCHAR",
+      [
+        "name"
+      ],
+      [
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22597,
+      [
+        "SELECT hydrology.examples.greet('Ada') AS greeting"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "hydrology",
+      "22592",
+      "examples",
+      "greet",
+      null,
+      "scalar",
+      "Greet a name in a chosen tone: greet('Ada', 'formal') returns 'Good day, Ada.'",
+      null,
+      {
+        "vgi.category": "text",
+        "vgi.doc_llm": "Return a greeting for each input name in the requested tone. `style` must be a constant, either `'casual'` (`'Hi, Ada!'`) or `'formal'` (`'Good day, Ada.'`); any other value is rejected when the query is planned. NULL names produce NULL.",
+        "vgi.doc_md": "## greet(name, style)\n\nA greeting in the chosen tone: `'casual'` or `'formal'`.\n\n`greet('Ada', 'formal')` returns `'Good day, Ada.'`.",
+        "vgi.example_queries": "[{\"description\": \"Greet one name casually\", \"sql\": \"SELECT hydrology.examples.greet('Ada') AS greeting\"}, {\"description\": \"Greet one name formally\", \"sql\": \"SELECT hydrology.examples.greet('Ada', 'formal') AS greeting\"}]",
+        "vgi.keywords": "[\"greet\", \"greeting\", \"formal greeting\", \"casual greeting\", \"salutation\", \"tone\"]",
+        "vgi.title": "Greet (with tone)"
+      },
+      "VARCHAR",
+      [
+        "name",
+        "style"
+      ],
+      [
+        "VARCHAR",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22597,
+      [
+        "SELECT hydrology.examples.greet('Ada', 'formal') AS greeting"
+      ],
+      "CONSISTENT",
+      []
+    ]
+  ]
+}

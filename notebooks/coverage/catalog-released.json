@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "repository": "Query-farm/vgi-hydrology",
+  "revision": "v0.1.0",
+  "captured_at": "2026-11-14T22:25:16.846698+00:00",
+  "default_schema": "main",
+  "scope": "all_public_functions_and_tables",
+  "complete": true,
+  "evidence": [
+    {
+      "path": "coverage/catalog-provenance.json",
+      "sha256": "d02c50a5d4cda736ae319b3f22f4865379e00f5ac2fd0b445f103e59ffbe7c26",
+      "description": "Immutable release/current identities, alias counting, data and secret boundaries."
+    },
+    {
+      "path": "coverage/released-functions.json",
+      "sha256": "ec8f8d18f2dbccea4d3ffcee76f43274a68e102704e45fdc63f33ec1e2ca395b",
+      "description": "Complete actual worker-filtered duckdb_functions() native export; every schema/overload/alias retained."
+    },
+    {
+      "path": "coverage/released-tables.json",
+      "sha256": "2aa47215e90317a6c7845c184ad09b004ec9843bb14c9b04267f1512eddc5cc1",
+      "description": "Complete actual worker-filtered duckdb_tables() native export; every schema/overload/alias retained."
+    },
+    {
+      "path": "coverage/released-views.json",
+      "sha256": "4cfd4b624cf0982d45c3a2b28adaef1e0a8ae55eba04ad3b183680927a23d401",
+      "description": "Complete actual worker-filtered duckdb_views() native export; every schema/overload/alias retained."
+    },
+    {
+      "path": "coverage/released-database.json",
+      "sha256": "1e8659e101cc5e8c0a2960a70dc5d22416d508a41da0c6110f011a432b96ff42",
+      "description": "Actual catalog title/subtitle and metadata."
+    }
+  ],
+  "objects": [
+    {
+      "schema": "examples",
+      "name": "sequence_table",
+      "kind": "function",
+      "signatures": [
+        "sequence_table(BIGINT, BIGINT) -> TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "examples",
+      "name": "fetch_items",
+      "kind": "function",
+      "signatures": [
+        "fetch_items(VARCHAR, BIGINT) -> TABLE"
+      ],
+      "authentication": "optional",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "landcover",
+      "kind": "function",
+      "signatures": [
+        "landcover(TABLE, VARCHAR, BIGINT, VARCHAR) -> TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "demo_input",
+      "kind": "function",
+      "signatures": [
+        "demo_input() -> TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "catchments",
+      "kind": "function",
+      "signatures": [
+        "catchments(TABLE, DOUBLE, BIGINT, VARCHAR, DOUBLE, VARCHAR) -> TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "examples",
+      "name": "greet",
+      "kind": "function",
+      "signatures": [
+        "greet(VARCHAR) -> VARCHAR"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "examples",
+      "name": "greet",
+      "kind": "function",
+      "signatures": [
+        "greet(VARCHAR, VARCHAR) -> VARCHAR"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "demo_input",
+      "kind": "table",
+      "signatures": [
+        "TABLE"
+      ],
+      "authentication": "none",
+      "access": "read"
+    }
+  ]
+}

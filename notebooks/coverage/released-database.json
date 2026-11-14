@@ -1,0 +1,47 @@
+{
+  "query": "SELECT * FROM duckdb_databases() WHERE database_name='hydrology'",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "path",
+    "comment",
+    "tags",
+    "internal",
+    "type",
+    "readonly",
+    "encrypted",
+    "cipher",
+    "options"
+  ],
+  "rows": [
+    [
+      "hydrology",
+      22592,
+      null,
+      "Delineate DEM-derived upstream catchments for monitoring-station rows, then summarize categorical land cover and spatially join facilities with the returned WKB polygons. Flow uses PyFlwDir's depression-filled D8 network. Catchments reaching the DEM boundary or nodata are flagged as potentially incomplete. Projected metre DEMs and explicit input coordinate systems are required. This is drainage analysis, not a flood model.",
+      {
+        "vgi.agent_test_tasks": "[{\"name\": \"formal_greeting\", \"prompt\": \"Using the hydrology worker, greet the name 'Grace' formally.\"}, {\"name\": \"sum_of_squares\", \"prompt\": \"Using the hydrology worker, what is the sum of the squared column for the first 10 rows of the sequence with the default step?\"}, {\"name\": \"stepped_sequence\", \"prompt\": \"List the n values of a 4-row sequence that steps by 5, in ascending order.\"}, {\"name\": \"items_per_category\", \"prompt\": \"The items API is running at https://vgi-starter-api.query-farm.services/v1. How many items does it have in each category?\"}, {\"name\": \"gis_demo_input\", \"prompt\": \"Identify the synthetic outlet. Use the bundled synthetic inputs and return the columns and ordering shown in its catalog example.\"}, {\"name\": \"gis_catchments\", \"prompt\": \"Delineate the known synthetic valley. Use the bundled synthetic inputs and return the columns and ordering shown in its catalog example.\"}, {\"name\": \"gis_landcover\", \"prompt\": \"Confirm the entire synthetic upstream area has classified land cover. Use the bundled synthetic inputs and return the columns and ordering shown in its catalog example.\"}, {\"name\": \"gis_class20_share\", \"prompt\": \"Gauges west (x=500015, y=4100035), mid (x=500035, y=4100035) and east (x=500055, y=4100035), in EPSG:32618, sit on the bundled synthetic DEM. Using the bundled synthetic land cover, what percentage of each gauge's upstream catchment area is land-cover class 20? Return station_id and pct_class_20 (a DOUBLE rounded to 1 decimal place, 0.0 when the catchment has none), one row per gauge ordered by station_id.\"}]",
+        "vgi.author": "Query.Farm",
+        "vgi.copyright": "Copyright 2026 Query.Farm LLC",
+        "vgi.doc_llm": "Delineate DEM-derived upstream catchments for monitoring-station rows, then summarize categorical land cover and spatially join facilities with the returned WKB polygons. Flow uses PyFlwDir's depression-filled D8 network. Catchments reaching the DEM boundary or nodata are flagged as potentially incomplete. Projected metre DEMs and explicit input coordinate systems are required. This is drainage analysis, not a flood model.",
+        "vgi.doc_md": "## GIS analysis\n\nDelineate DEM-derived upstream catchments for monitoring-station rows, then summarize categorical land cover and spatially join facilities with the returned WKB polygons. Flow uses PyFlwDir's depression-filled D8 network. Catchments reaching the DEM boundary or nodata are flagged as potentially incomplete. Projected metre DEMs and explicit input coordinate systems are required. This is drainage analysis, not a flood model.\n\n### SQL workflow\n\nPass query results to the main schema functions, retaining IDs for joins. Use bundled synthetic data to try the executable examples without network access. CRS, coverage, inference limits and resource bounds are explicit function parameters. The examples schema preserves the SDK regression recipes.",
+        "vgi.icon_url": "https://query.farm/media-kit/products/vgi/vgi-logo.png",
+        "vgi.keywords": "[\"vgi\", \"duckdb\", \"hydrology\", \"catchments\", \"D8 routing\", \"land cover\", \"geospatial\"]",
+        "vgi.license": "0BSD",
+        "vgi.source_url": "https://github.com/Query-farm/vgi-hydrology",
+        "vgi.subtitle": "Upstream catchments and land-cover summaries for monitoring stations.",
+        "vgi.support_contact": "https://github.com/Query-farm/vgi-hydrology/issues",
+        "vgi.support_policy_url": "https://github.com/Query-farm/vgi-hydrology#support",
+        "vgi.title": "VGI Hydrology Worker"
+      },
+      false,
+      "vgi",
+      false,
+      false,
+      null,
+      {
+        "location": "uvx --from git+https://github.com/Query-farm/vgi-hydrology@v0.1.0 vgi-hydrology-worker"
+      }
+    ]
+  ]
+}

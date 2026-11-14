@@ -95,4 +95,5 @@ Source and support: [Query-farm/vgi-hydrology](https://github.com/Query-farm/vgi
 
 [Compare upstream catchments](notebooks/README.md) follows station snapping, land-cover
 composition and facility inclusion through the published worker, with mapped results
-and a standalone parameter experiment. It runs from the notebook directory alone.
+and a standalone parameter experiment. A separate starter-schema example reconciles
+a local paginated inventory against an independent plan. Both run from the notebook directory alone.
