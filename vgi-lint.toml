@@ -22,3 +22,11 @@ ignore = [
 #   vgi-lint lint --baseline vgi-lint-baseline --update-baseline
 # and uncomment the next line. Only new findings fail after that.
 # baseline = "vgi-lint-baseline"
+
+# Every executable example launches a fresh worker, and the first D8 routing call in a
+# process pays pyflwdir's Numba JIT compile (~3-4 s, uncached) before the tiny synthetic
+# DEM is routed in milliseconds. The composed catchments -> landcover examples land just
+# over the default 5 s bar on CI runners for that reason alone, so raise the slow-example
+# warning threshold. This hides no metadata finding.
+[execution]
+slow_seconds = 15
