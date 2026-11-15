@@ -5,6 +5,7 @@
 - Removed the starter template's demo schema (`examples.greet` / `fetch_items` / `sequence_table`), `demo_input` and the placeholder `hydrology_api` secret type. The worker now exposes only `main.catchments` and `main.landcover` and needs no credentials.
 - Examples, tests and agent tasks that read the synthetic outlet from `demo_input` now use an inline `VALUES` station relation (`('outlet', 500035.0, 4100005.0)`).
 - Removed the starter's SDK recipe scripts (`examples/`), the mock REST API and the starter-only paginated-inventory notebook.
+- The catalog comment is now a short plain-text description of what the worker covers; the detailed analysis notes remain in the catalog's `vgi.doc_md` and `vgi.doc_llm` documentation.
 
 ## 0.1.0 (2026-11-14)
 

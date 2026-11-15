@@ -25,6 +25,14 @@ from vgi.catalog import Catalog, Schema
 from .analysis import GIS_DESCRIPTION, GIS_FUNCTIONS
 from .meta import CATALOG_NAME, CATALOG_TAGS, SCHEMA_CATEGORIES, SOURCE_URL, keywords_array
 
+# One-paragraph catalog description shown in directories (VGI001); the long
+# analysis guidance lives in the vgi.doc_md / vgi.doc_llm tags.
+CATALOG_COMMENT = (
+    "Watershed analysis over digital elevation models: upstream catchments for river gauges and "
+    "monitoring stations from D8 flow routing, and the land cover inside each catchment. Drainage "
+    "analysis only, not a flood model. Sample rasters are included."
+)
+
 
 def _stamp_example_queries(functions: list[type[Any]]) -> list[dict[str, str]]:
     """Publish each function's examples as ``vgi.example_queries`` (with descriptions).
@@ -52,7 +60,7 @@ class HydrologyWorker(Worker):
 
     catalog = Catalog(
         name=CATALOG_NAME,
-        comment=GIS_DESCRIPTION,
+        comment=CATALOG_COMMENT,
         source_url=SOURCE_URL,
         tags={
             **CATALOG_TAGS,
