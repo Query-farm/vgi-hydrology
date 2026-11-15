@@ -1,13 +1,12 @@
 # Hydrology notebooks
 
-Read the saved outputs on GitHub or use **Open in Colab** at the top of either notebook.
+Read the saved outputs on GitHub or use **Open in Colab** at the top of the notebook.
 
 | Notebook | Question | Default → experiment |
 |---|---|---|
 | [01 · Compare upstream catchments](01_compare_upstream_catchments.ipynb) | How does station snapping change area, land cover and facility inclusion? | Snapping radius 0 → 15 metres |
-| [02 · Pages and plan completeness](02_pages_are_not_procurement_completeness.ipynb) | Can a fully retrieved catalog price every requested item? | Local fixture page size 3 → 1 |
 
-The first preserves the existing spatial analysis and twelve reconciliation checks. The second demonstrates the released `examples` starter schema separately; it is not a new hydrology or real procurement service. Every raster, station, facility, item, price and contact is synthetic. No real supplier, account, credential, order, email or external analytical data service is used.
+It preserves the spatial analysis and twelve reconciliation checks. Every raster, station and facility is synthetic. No credential or external analytical data service is used.
 
 ## Run from this directory
 
@@ -17,12 +16,11 @@ Install [uv](https://docs.astral.sh/uv/). Initial packages, hash-verified notebo
 uv sync --locked --extra runner
 uv run --locked --extra runner vgi-notebooks
 uv run --locked --extra runner vgi-notebooks 01_compare_upstream_catchments.ipynb --parameters '{"SNAP_RADIUS_M":15.0}' --output-dir validation/snapped
-uv run --locked --extra runner vgi-notebooks 02_pages_are_not_procurement_completeness.ipynb --parameters '{"PAGE_SIZE":1}' --output-dir validation/page-1
 ```
 
 For interactive Jupyter use this environment's Python kernel and this directory as cwd. Restart and Run All after changing a parameter. Colab installs only the shared base package plus Rasterio, preserving compatible imported plotting/data and kernel libraries; `[runner]` is only for local publication. [Shared v0.3.26](https://github.com/Query-farm/vgi-example-notebooks/releases/tag/v0.3.26) provides branding, SVG charts, an isolated SQL session, hash-verified companion setup, coverage validation and an atomic runner. Overrides require a separate output directory and failed runs preserve the last successful notebook.
 
-Both notebooks visibly use the clean public release:
+The notebook visibly uses the clean public release:
 
 ```sql
 INSTALL vgi FROM community;
@@ -41,22 +39,14 @@ Zero radius uses the containing cell without a stream threshold. A positive radi
 
 Land-cover composition is conditional on valid pixels; coverage is a separate measure. The grid-aligned fixture conserves raster area, but pixel-centre inclusion is not an exact arbitrary-polygon area integral. Geometric facility inclusion is not pollutant transport, flood inundation, causality or impact. Compare facility identities as well as counts when the selected basin changes.
 
-## Local REST fixture and credentials
-
-`inventory_fixture.py` serves seven fixed synthetic inventory rows from an ephemeral `127.0.0.1` port. It implements GET pages only, requires the deliberately fake public token `synthetic-hydrology-notebook-only`, and records only page/page-size/status. The SQL-generated plan independently requests eight IDs and 15 units. ID 8 is absent, ID 5's price is NULL, ID 6's name is NULL; a known subtotal must remain distinct from a complete quote. Greeting labels are strings only, do not identify or authenticate contacts, and preserve NULLs.
-
-Shared `connect(globals())` creates an empty temporary SQL-secret directory, disables persistence/default INI autoload, and verifies no secrets before ATTACH. Notebook02 explicitly creates only a TEMPORARY `hydrology_api` fixture secret, verifies its name/type/nonpersistent status, drops it at cleanup, then closes the session and server. Notebook01 uses no secret. The user's persistent credentials and global environment are never read or changed by notebook setup. The worker receives the explicit fake SQL secret for its local HTTP requests.
-
-The real released `fetch_items` reader is tested against this fixture; no live API validation or production retry behavior is claimed. A real integration needs an endpoint matching the `/items` JSON contract and a credential intentionally supplied for that endpoint. Do not silently redirect this fixture notebook to a real account. Changing page size alters the number of successful GETs, while rows, missingness, subtotal and the chart stay fixed.
-
 ## Coverage and validation
 
-The actual released catalog has 7 function rows and 1 physical table: `greet` has two overloads, and `demo_input` has a table plus same-named function alias. Counted once per (schema, name), the **six logical surfaces are all meaningfully demonstrated**: main.catchments, main.landcover, main.demo_input, examples.sequence_table, examples.fetch_items and examples.greet. Authenticated example APIs stay in the denominator. `coverage.json` retains complete native function/table/view exports, source evidence, result/editorial mappings and receipts hashed from final saved JSON.
+The v0.1.0 release this notebook attaches still ships the starter template's demo surface (`demo_input`, the `examples` schema and a `hydrology_api` secret type); 0.2.0 removed it, so the notebook demonstrates only `main.catchments` and `main.landcover` and builds its station relation from inline `VALUES`. The saved outputs and the `coverage/` catalog exports predate that change: regenerate them with `vgi-notebooks` after moving the visible release to v0.2.0. `coverage.json` retains native function/table/view exports, source evidence and result/editorial mappings.
 
 Every default and meaningful experiment is executed. One fresh preloaded Python3.12 notebook-only setup exercises the common launcher and companion-download path. Actual hosted Colab remains untested. Review charts are inspected in both parameter variants; published SVG links are verified in GitHub's actual renderer. Generated logs, review PNGs, runtime audits and experiment copies remain ignored.
 
-Unchanged source CI [43621432643](https://github.com/Query-farm/vgi-hydrology/actions/runs/43621432643) at the exact release/current source is reused. The source's latest CI accommodates PyFlwDir's cold JIT in its metadata timing budget. This notebook-only update does not rebuild the worker, rerun source suites, deploy services or publish containers. The new local fixture alone receives focused authentication/page/cleanup checks, and both notebooks exercise the real released worker.
+Unchanged source CI [43621432643](https://github.com/Query-farm/vgi-hydrology/actions/runs/43621432643) at the exact release/current source is reused. The source's latest CI accommodates PyFlwDir's cold JIT in its metadata timing budget. This notebook-only update does not rebuild the worker, rerun source suites, deploy services or publish containers.  the notebook exercises the real released worker.
 
 The [shared standard](https://github.com/Query-farm/vgi-example-notebooks/blob/main/docs/standard.md) and [coverage format](https://github.com/Query-farm/vgi-example-notebooks/blob/main/docs/coverage.md) are maintained centrally.
 
-The `hydrology` companion registry pins `46987e8b8f9394e2456ec318e287458a3c15efad`: two unchanged synthetic GeoTIFFs and the local inventory fixture helper, each checked against its registered SHA256 before use.
+The `hydrology` companion registry pins `46987e8b8f9394e2456ec318e287458a3c15efad`: two unchanged synthetic GeoTIFFs, each checked against its registered SHA256 before use.

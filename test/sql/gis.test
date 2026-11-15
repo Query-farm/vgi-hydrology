@@ -6,21 +6,15 @@ require-env HYDROLOGY_WORKER
 statement ok
 ATTACH 'hydrology' (TYPE vgi, LOCATION '{HYDROLOGY_WORKER}');
 
-# Demo monitoring station on bundled synthetic data
-query T
-SELECT station_id FROM hydrology.main.demo_input;
-----
-outlet
-
 # Upstream catchments on bundled synthetic data
 query TTT
-SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) ORDER BY station_id;
+SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) ORDER BY station_id;
 ----
 outlet	49	4900.0
 
 # Catchment land cover on bundled synthetic data
 query TT
-SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'));
+SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) WHERE status='ok'));
 ----
 4900.0	1.0
 
@@ -33,16 +27,16 @@ mid	1600.0	20	0.625
 outlet	4900.0	20	0.5714285714285714
 west	200.0	10	1.0
 
-# Composed: intervening land cover between a nested gauge and the demo outlet
+# Composed: intervening land cover between a nested gauge and the valley outlet
 query TTTT
-WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input UNION ALL SELECT 'mid', 500035.0, 4100035.0), cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) WHERE status = 'ok'))) SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 FROM cover GROUP BY class_code ORDER BY class_code;
+WITH gauges AS (SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0), ('mid', 500035.0, 4100035.0)) AS g(station_id, x, y)), cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) WHERE status = 'ok'))) SELECT class_code, sum(area_m2) FILTER (WHERE station_id = 'outlet') AS outlet_area_m2, sum(area_m2) FILTER (WHERE station_id = 'mid') AS upstream_gauge_area_m2, outlet_area_m2 - upstream_gauge_area_m2 AS intervening_area_m2 FROM cover GROUP BY class_code ORDER BY class_code;
 ----
 10	2100.0	600.0	1500.0
 20	2800.0	1000.0	1800.0
 
 # Empty station relation
 query T
-SELECT count(*) FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input WHERE false));
+SELECT count(*) FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y) WHERE false));
 ----
 0
 
@@ -60,7 +54,7 @@ LOAD spatial;
 
 # Join upstream facilities to catchments
 query TTTT
-WITH basins AS (SELECT * FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input))),
+WITH basins AS (SELECT * FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y)))),
 facilities(facility_id, x, y) AS (VALUES ('upstream-plant', 500015.0, 4100055.0), ('outside-plant', 500095.0, 4100055.0))
 SELECT b.station_id, f.facility_id, b.area_m2, b.boundary_limited
 FROM basins b JOIN facilities f ON ST_Covers(ST_GeomFromWKB(b.geometry_wkb), ST_Point(f.x, f.y))
@@ -75,6 +69,6 @@ Missing input columns
 
 # Constant controls must not accept infinity.
 statement error
-SELECT * FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input), snap_radius_m := 'Infinity'::DOUBLE);
+SELECT * FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y)), snap_radius_m := 'Infinity'::DOUBLE);
 ----
 finite

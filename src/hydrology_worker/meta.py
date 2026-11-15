@@ -28,9 +28,6 @@ SCHEMA_CATEGORIES = [
         "title": "GIS Analysis",
         "description": "Spatial analysis over query results and geospatial assets.",
     },
-    {"name": "text", "title": "Text", "description": "Functions that build or transform strings."},
-    {"name": "generators", "title": "Generators", "description": "Table functions that generate rows."},
-    {"name": "api", "title": "REST APIs", "description": "Table functions that read from HTTP APIs."},
 ]
 
 
@@ -57,101 +54,32 @@ def column(name: str, type_: pa.DataType, comment: str, *, nullable: bool = True
     return pa.field(name, type_, nullable=nullable, metadata={b"comment": comment.encode()})
 
 
-CATALOG_DOC_LLM = (
-    "An example VGI worker generated from the Query.Farm starter template. It shows the three "
-    "shapes most workers need: a vectorized scalar function with an overload, a deterministic "
-    "table function with a named default argument, and a table function that pages through a REST "
-    "API with retries and an optional bearer token taken from a DuckDB secret or an environment "
-    "variable. Replace them with your own functions; keep the metadata complete so agents can "
-    "discover and call them."
-)
-
-CATALOG_DOC_MD = (
-    "# VGI hydrology worker\n\n"
-    "**An example [VGI](https://query.farm/vgi) worker that brings custom functions into DuckDB "
-    "SQL.** It was generated from the Query.Farm starter template and is meant to be renamed and "
-    "rewritten: every function here demonstrates one pattern you will reuse, from vectorized "
-    "scalars and streaming table functions to a REST API reader that retries politely and reads "
-    "a bearer token from a DuckDB secret or the environment.\n\n"
-    "The worker speaks Apache Arrow to DuckDB over stdin/stdout, a Unix socket, or HTTP, so the "
-    "same code runs as a local subprocess or a hosted service. See the "
-    "[VGI documentation](https://query.farm/vgi/docs/) to learn more."
-)
-
-SCHEMA_DOC_LLM = (
-    "The `examples` schema holds the starter template's example functions, one per common worker "
-    "pattern. `greet(name)` and `greet(name, style)` are vectorized scalars: use them inside a "
-    "projection or predicate, one result per row; `style` is a constant that must be 'casual' or "
-    "'formal'. `sequence_table(count, step := 1)` is a deterministic table function that returns "
-    "`count` rows of `(n, squared)`; use it for demos, tests, and as a template for generators. "
-    "`fetch_items(base_url, page_size := 100)` reads every item from a paginated JSON REST API as "
-    "`(id, name, category, price)` rows, streaming one page per batch, retrying rate-limited "
-    "requests, and authenticating with a `hydrology_api` DuckDB secret or the `HYDROLOGY_API_TOKEN` "
-    "environment variable. Scalars cannot take named arguments; table functions can."
-)
-
-SCHEMA_DOC_MD = (
-    "## examples\n\n"
-    "The starter template's example functions, one per common worker pattern.\n\n"
-    "- **Scalars** answer one question per row and slot into a projection or predicate.\n"
-    "- **Table functions** return sets of rows, streamed to DuckDB in Arrow batches.\n"
-    "- **REST readers** page through an HTTP API and authenticate with a DuckDB secret."
-)
-
+# Public analyst tasks for `vgi-lint simulate`; private graders live in vgi-agent-tests.yaml.
 AGENT_TEST_TASKS = [
-    {"name": "formal_greeting", "prompt": "Using the hydrology worker, greet the name 'Grace' formally."},
     {
-        "name": "sum_of_squares",
-        "prompt": "Using the hydrology worker, what is the sum of the squared column for the first 10 rows "
-        "of the sequence with the default step?",
+        "name": "gis_catchments",
+        "prompt": "Delineate the upstream catchment of the synthetic valley's outlet gauge 'outlet' at "
+        "(x=500035, y=4100005) in EPSG:32618 on the bundled synthetic DEM. Return the columns and "
+        "ordering shown in the catchments catalog example.",
     },
     {
-        "name": "stepped_sequence",
-        "prompt": "List the n values of a 4-row sequence that steps by 5, in ascending order.",
+        "name": "gis_landcover",
+        "prompt": "Confirm the entire upstream area of the synthetic valley's outlet gauge 'outlet' at "
+        "(x=500035, y=4100005) in EPSG:32618 has classified land cover, using the bundled synthetic "
+        "DEM and land cover. Return the columns and ordering shown in the landcover catalog example.",
     },
     {
-        "name": "items_per_category",
-        "prompt": (
-            "The items API is running at https://vgi-starter-api.query-farm.services/v1. "
-            "How many items does it have in each category?"
-        ),
+        "name": "gis_class20_share",
+        "prompt": "Gauges west (x=500015, y=4100035), mid (x=500035, y=4100035) and east "
+        "(x=500055, y=4100035), in EPSG:32618, sit on the bundled synthetic DEM. Using the bundled "
+        "synthetic land cover, what percentage of each gauge's upstream catchment area is land-cover "
+        "class 20? Return station_id and pct_class_20 (a DOUBLE rounded to 1 decimal place, 0.0 when "
+        "the catchment has none), one row per gauge ordered by station_id.",
     },
 ]
 
-AGENT_TEST_TASKS.extend(
-    [
-        {
-            "name": "gis_demo_input",
-            "prompt": "Identify the synthetic outlet. Use the bundled synthetic inputs and return the "
-            "columns and ordering shown in its catalog example.",
-        },
-        {
-            "name": "gis_catchments",
-            "prompt": "Delineate the known synthetic valley. Use the bundled synthetic inputs and "
-            "return the columns and ordering shown in its catalog example.",
-        },
-        {
-            "name": "gis_landcover",
-            "prompt": "Confirm the entire synthetic upstream area has classified land cover. Use the "
-            "bundled synthetic inputs and return the columns and ordering shown in its "
-            "catalog example.",
-        },
-        {
-            "name": "gis_class20_share",
-            "prompt": "Gauges west (x=500015, y=4100035), mid (x=500035, y=4100035) and east "
-            "(x=500055, y=4100035), in EPSG:32618, sit on the bundled synthetic DEM. Using the bundled "
-            "synthetic land cover, what percentage of each gauge's upstream catchment area is land-cover "
-            "class 20? Return station_id and pct_class_20 (a DOUBLE rounded to 1 decimal place, 0.0 when "
-            "the catchment has none), one row per gauge ordered by station_id.",
-        },
-    ]
-)
-
 CATALOG_TAGS = {
     "vgi.title": "VGI Hydrology Worker",
-    "vgi.subtitle": "Example DuckDB functions to rename and replace: a scalar, a table function and a REST API reader.",
-    "vgi.doc_llm": CATALOG_DOC_LLM,
-    "vgi.doc_md": CATALOG_DOC_MD,
     "vgi.source_url": SOURCE_URL,
     "vgi.icon_url": "https://query.farm/media-kit/products/vgi/vgi-logo.png",
     "vgi.license": "0BSD",
@@ -160,6 +88,5 @@ CATALOG_TAGS = {
     "vgi.keywords": keywords_array("vgi, duckdb, hydrology, catchments, D8 routing, land cover, geospatial"),
     "vgi.support_contact": f"{SOURCE_URL}/issues",
     "vgi.support_policy_url": f"{SOURCE_URL}#support",
-    # Public analyst tasks for `vgi-lint simulate`; private graders live in vgi-agent-tests.yaml.
     "vgi.agent_test_tasks": json.dumps(AGENT_TEST_TASKS),
 }

@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import math
 from dataclasses import dataclass
-from typing import Annotated, Any, ClassVar
+from typing import Annotated, Any
 
 import numpy as np
 import pyarrow as pa
@@ -17,19 +16,13 @@ from shapely.geometry import mapping, shape
 from shapely.ops import unary_union
 from vgi import Arg
 from vgi.arguments import TableInput
-from vgi.catalog import Table
-from vgi.catalog.constraints import constraint_record
 from vgi.invocation import BindResponse
 from vgi.table_function import (
     BindParams,
     OutputCollector,
     ProcessParams,
-    TableFunctionGenerator,
-    bind_fixed_schema,
-    init_single_worker,
 )
 from vgi.table_in_out_function import TableInOutGenerator
-from vgi_rpc import ArrowSerializableDataclass
 
 from .raster_support import elevation, north_up, open_raster
 from .support import (
@@ -52,13 +45,6 @@ GIS_DESCRIPTION = (
     "Catchments reaching the DEM boundary or nodata are flagged as potentially incomplete. "
     "Projected metre DEMs and explicit input coordinate systems are required. This is "
     "drainage analysis, not a flood model."
-)
-INPUT = schema_of(
-    [
-        ("station_id", pa.string(), "Caller-owned station identity."),
-        ("x", pa.float64(), "Station X in input_crs."),
-        ("y", pa.float64(), "Station Y in input_crs."),
-    ]
 )
 CATCHMENTS = schema_of(
     [
@@ -312,14 +298,14 @@ class LandcoverArgs:
     ]
 
 
+# The bundled synthetic valley's outlet gauge, as an inline station relation.
+OUTLET_SQL = "SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y)"
 CATCH_SQL = (
-    "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * "
-    "FROM hydrology.main.demo_input)) ORDER BY station_id"
+    "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((" + OUTLET_SQL + ")) ORDER BY station_id"
 )
 LAND_SQL = (
     "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT "
-    "station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM "
-    "hydrology.main.demo_input)) WHERE status='ok'))"
+    "station_id, geometry_wkb FROM hydrology.main.catchments((" + OUTLET_SQL + ")) WHERE status='ok'))"
 )
 # Composed: delineate several gauges, feed the polygons to landcover, and join the class
 # rows back to each catchment to pick the class covering the most upstream area.
@@ -344,11 +330,11 @@ DOMINANT_ROWS: list[list[Any]] = [
     ["outlet", 4900.0, 20, 0.5714285714285714],
     ["west", 200.0, 10, 1.0],
 ]
-# Composed: add an upstream gauge to demo_input, delineate both nested catchments, summarize
+# Composed: add an upstream gauge to the outlet, delineate both nested catchments, summarize
 # each one's land cover, and subtract per class to get the area draining only to the outlet.
 INTERVENING_SQL = (
-    "WITH gauges AS (SELECT station_id, x, y FROM hydrology.main.demo_input "
-    "UNION ALL SELECT 'mid', 500035.0, 4100035.0), "
+    "WITH gauges AS (SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0), "
+    "('mid', 500035.0, 4100035.0)) AS g(station_id, x, y)), "
     "cover AS (SELECT station_id, class_code, area_m2 FROM hydrology.main.landcover(("
     "SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM gauges)) "
     "WHERE status = 'ok'))) "
@@ -358,7 +344,7 @@ INTERVENING_SQL = (
     "FROM cover GROUP BY class_code ORDER BY class_code"
 )
 INTERVENING_TEXT = (
-    "Land cover of the intervening drainage between a mid-valley gauge and the demo outlet: "
+    "Land cover of the intervening drainage between a mid-valley gauge and the valley outlet: "
     "per class, outlet catchment area minus the nested upstream gauge's catchment area "
     "(1,500 m2 of class 10 and 1,800 m2 of class 20)"
 )
@@ -450,97 +436,4 @@ class Landcover(TableInOutGenerator[LandcoverArgs]):
         out.emit(pa.RecordBatch.from_pylist(rows, schema=params.output_schema))
 
 
-@dataclass(slots=True, frozen=True, kw_only=True)
-class DemoArgs:
-    """No arguments: select the bundled monitoring station."""
-
-
-@dataclass(kw_only=True)
-class Cursor(ArrowSerializableDataclass):
-    """Demo emission flag."""
-
-    done: bool = False
-
-
-DEMO_SQL = "SELECT station_id FROM hydrology.main.demo_input"
-
-
-@init_single_worker
-@bind_fixed_schema
-class DemoInput(TableFunctionGenerator[DemoArgs, Cursor]):
-    """Return the outlet of a known seven-by-seven-cell synthetic valley."""
-
-    FIXED_SCHEMA: ClassVar[pa.Schema] = INPUT
-
-    class Meta:
-        """Synthetic outlet metadata."""
-
-        name = "demo_input"
-        description = "Synthetic monitoring station at the bundled valley outlet"
-        tags = metadata(
-            "Demo monitoring station",
-            "One station in EPSG:32618 at the outlet of demo://basin.tif. The synthetic DEM has"
-            " 49 cells of 100 square metres each. A matching landcover.tif supports area "
-            "summaries without network access.",
-            INPUT,
-            DEMO_SQL,
-            [["outlet"]],
-        )
-        examples = example(DEMO_SQL, "Identify the synthetic outlet")
-
-    @classmethod
-    def initial_state(cls, params: ProcessParams[DemoArgs]) -> Cursor:
-        """Start before the demo row."""
-        return Cursor()
-
-    @classmethod
-    def process(cls, params: ProcessParams[DemoArgs], state: Cursor, out: OutputCollector) -> None:
-        """Emit the station once."""
-        if state.done:
-            out.finish()
-            return
-        out.emit(
-            pa.RecordBatch.from_pylist(
-                [{"station_id": "outlet", "x": 500035.0, "y": 4100005.0}], schema=params.output_schema
-            )
-        )
-        state.done = True
-
-
-GIS_FUNCTIONS: list[type[Any]] = [DemoInput, Catchments, Landcover]
-
-GIS_TABLES = [
-    Table(
-        name="demo_input",
-        function=DemoInput,
-        comment=DemoInput.Meta.description,
-        constraints=(
-            constraint_record(
-                ["main"],
-                "demo_input",
-                "id_not_null",
-                "NOT_NULL",
-                [["station_id"]],
-                enforcement="ENFORCED",
-                validation="ALL_ROWS",
-            ),
-            constraint_record(
-                ["main"],
-                "demo_input",
-                "demo_pk",
-                "PRIMARY_KEY",
-                [["station_id"]],
-                enforcement="ENFORCED",
-                validation="ALL_ROWS",
-            ),
-        ),
-        tags={
-            **DemoInput.Meta.tags,
-            "domain": "geospatial",
-            "vgi.example_queries": json.dumps(
-                [{"description": ex.description, "sql": ex.sql} for ex in DemoInput.Meta.examples]
-            ),
-        },
-        column_comments={f.name: (f.metadata or {}).get(b"comment", b"").decode() for f in DemoInput.FIXED_SCHEMA},
-    )
-]
+GIS_FUNCTIONS: list[type[Any]] = [Catchments, Landcover]

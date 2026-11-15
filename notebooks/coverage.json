@@ -27,58 +27,14 @@
   "notebooks": [
     {
       "path": "01_compare_upstream_catchments.ipynb",
-      "sha256": "d69b36da61064773ac7de3073e4db4b47aa8c3a88200e2bb04d6d70314c54302",
+      "sha256": "721405857b122f47c0f34e3a2e56767003c1cb0dbfb85236e374258d1df4a09b",
       "execution": {
         "path": "coverage/run-01.json",
         "sha256": "f7684ce87d2b3f6327b90af9c238b0dc936ca539e7cb77a5edf389cfd1190f07"
       }
-    },
-    {
-      "path": "02_pages_are_not_procurement_completeness.ipynb",
-      "sha256": "7188a8e308ecf6bff2163e5f8b23024f1d5349ae73cdb5836b58e49e533dab7c",
-      "execution": {
-        "path": "coverage/run-02.json",
-        "sha256": "f1ded56dee7bb2501710860704bd7e739c032e703f1cd33f0b976dfe9ea3934a"
-      }
     }
   ],
   "examples": [
-    {
-      "object": {
-        "schema": "main",
-        "name": "demo_input"
-      },
-      "notebook": "01_compare_upstream_catchments.ipynb",
-      "sql": [
-        {
-          "cell": "69e74dfa",
-          "reference": "hydrology.main.demo_input"
-        }
-      ],
-      "narrative_cells": [
-        "54760143"
-      ],
-      "result_cells": [
-        "69e74dfa",
-        "9f2af1f3",
-        "3b73d9bd"
-      ],
-      "interpretation_cells": [
-        "3b73d9bd"
-      ],
-      "review": {
-        "status": "approved",
-        "reviewer": "Codex /root/notebooks_ortools",
-        "reviewed_at": "2026-11-14T22:25:16.846698+00:00",
-        "notebook_sha256": "d69b36da61064773ac7de3073e4db4b47aa8c3a88200e2bb04d6d70314c54302",
-        "catalog_sha256": [
-          "b4029b415c6172fd3f8457909b219ca2d57b26e807366b674f2ea2601bf1c21c",
-          "8a852a6ef0dbc8db37b93c6007526a2200fc01a035dad792325c04b55b4f8fc0"
-        ],
-        "purpose": "Retain the bundled known-answer outlet station as a comparison and conservation anchor.",
-        "finding": "Bundled outlet joins three visible test stations. Outlet drains49cells/4900m², conserves class areas and contains the complete nested reference basin; it remains unchanged when offset-station snapping changes. Table and function alias count as one surface."
-      }
-    },
     {
       "object": {
         "schema": "main",
@@ -150,112 +106,6 @@
         ],
         "purpose": "Separate categorical composition from coverage and reconcile raster/polygon areas on an aligned fixture.",
         "finding": "Outlet class10/20 areas2100/2800m² sum4900; offset changes from300m² class20 to600/1000m². All successful basins have full fixture coverage and shares sum1, without implying complete real watershed extent or arbitrary-polygon exact integration."
-      }
-    },
-    {
-      "object": {
-        "schema": "examples",
-        "name": "sequence_table"
-      },
-      "notebook": "02_pages_are_not_procurement_completeness.ipynb",
-      "sql": [
-        {
-          "cell": "fetch-sql",
-          "reference": "hydrology.examples.sequence_table"
-        }
-      ],
-      "narrative_cells": [
-        "fetch-story"
-      ],
-      "result_cells": [
-        "request-audit",
-        "result"
-      ],
-      "interpretation_cells": [
-        "result"
-      ],
-      "review": {
-        "status": "approved",
-        "reviewer": "Codex /root/notebooks_ortools",
-        "reviewed_at": "2026-11-14T22:25:16.846698+00:00",
-        "notebook_sha256": "7188a8e308ecf6bff2163e5f8b23024f1d5349ae73cdb5836b58e49e533dab7c",
-        "catalog_sha256": [
-          "b4029b415c6172fd3f8457909b219ca2d57b26e807366b674f2ea2601bf1c21c",
-          "8a852a6ef0dbc8db37b93c6007526a2200fc01a035dad792325c04b55b4f8fc0"
-        ],
-        "purpose": "Build an independent expected-key population rather than allowing fetched rows to define completeness.",
-        "finding": "Eight generated n=0..7 become requestedIDs1..8 and quantities1,2,3 repeating, total15units. Generated square values checked separately. Leftjoin retains ID8 absent from seven-row catalog."
-      }
-    },
-    {
-      "object": {
-        "schema": "examples",
-        "name": "fetch_items"
-      },
-      "notebook": "02_pages_are_not_procurement_completeness.ipynb",
-      "sql": [
-        {
-          "cell": "fetch-sql",
-          "reference": "hydrology.examples.fetch_items"
-        }
-      ],
-      "narrative_cells": [
-        "fetch-story"
-      ],
-      "result_cells": [
-        "fetch-sql",
-        "request-audit",
-        "result"
-      ],
-      "interpretation_cells": [
-        "request-audit"
-      ],
-      "review": {
-        "status": "approved",
-        "reviewer": "Codex /root/notebooks_ortools",
-        "reviewed_at": "2026-11-14T22:25:16.846698+00:00",
-        "notebook_sha256": "7188a8e308ecf6bff2163e5f8b23024f1d5349ae73cdb5836b58e49e533dab7c",
-        "catalog_sha256": [
-          "b4029b415c6172fd3f8457909b219ca2d57b26e807366b674f2ea2601bf1c21c",
-          "8a852a6ef0dbc8db37b93c6007526a2200fc01a035dad792325c04b55b4f8fc0"
-        ],
-        "purpose": "Retrieve all fixture pages once and separate complete transport from complete pricing data.",
-        "finding": "Real released REST reader makes3localGETs at page3 or7at page1, authenticated only by temporary fake SQL secret. Seven items, eight planlines and USD575 knownsubtotal remain fixed; missing item and missing price remain distinct. No live service/retry behavior asserted."
-      }
-    },
-    {
-      "object": {
-        "schema": "examples",
-        "name": "greet"
-      },
-      "notebook": "02_pages_are_not_procurement_completeness.ipynb",
-      "sql": [
-        {
-          "cell": "join-sql",
-          "reference": "hydrology.examples.greet"
-        }
-      ],
-      "narrative_cells": [
-        "join-story"
-      ],
-      "result_cells": [
-        "join-sql",
-        "result"
-      ],
-      "interpretation_cells": [
-        "result"
-      ],
-      "review": {
-        "status": "approved",
-        "reviewer": "Codex /root/notebooks_ortools",
-        "reviewed_at": "2026-11-14T22:25:16.846698+00:00",
-        "notebook_sha256": "7188a8e308ecf6bff2163e5f8b23024f1d5349ae73cdb5836b58e49e533dab7c",
-        "catalog_sha256": [
-          "b4029b415c6172fd3f8457909b219ca2d57b26e807366b674f2ea2601bf1c21c",
-          "8a852a6ef0dbc8db37b93c6007526a2200fc01a035dad792325c04b55b4f8fc0"
-        ],
-        "purpose": "Produce nullable contact display labels without dropping incomplete plan lines or claiming identity/actions.",
-        "finding": "Both casual and formal overloads retain the same2NULLcontacts. Hardware rows get formalGooddayAda labels, while priced ID6 still lacks name/contact. Labels are strings only, not messages, authentication or fulfillment evidence."
       }
     }
   ]

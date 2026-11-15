@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import importlib
-import os
 import tempfile
 from typing import Any
 
@@ -11,7 +10,6 @@ from typing import Any
 def main() -> None:
     engine = importlib.import_module("haybarn")
     original_connect = engine.connect
-    os.environ.pop("HYDROLOGY_API_TOKEN", None)
     try:
         with tempfile.TemporaryDirectory(prefix="hydrology-lint-secrets-") as directory:
 

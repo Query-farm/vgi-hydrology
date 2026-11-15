@@ -6,17 +6,8 @@
   ],
   "checks": [
     {
-      "name": "Demo monitoring station on bundled synthetic data",
-      "sql": "SELECT station_id FROM hydrology.main.demo_input",
-      "rows": [
-        [
-          "outlet"
-        ]
-      ]
-    },
-    {
       "name": "Upstream catchments on bundled synthetic data",
-      "sql": "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) ORDER BY station_id",
+      "sql": "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) ORDER BY station_id",
       "rows": [
         [
           "outlet",
@@ -27,7 +18,7 @@
     },
     {
       "name": "Catchment land cover on bundled synthetic data",
-      "sql": "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'))",
+      "sql": "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y))) WHERE status='ok'))",
       "rows": [
         [
           4900.0,
@@ -37,7 +28,7 @@
     },
     {
       "name": "Empty station relation",
-      "sql": "SELECT count(*) FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input WHERE false))",
+      "sql": "SELECT count(*) FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y) WHERE false))",
       "rows": [
         [
           0
@@ -57,7 +48,7 @@
     },
     {
       "name": "Join upstream facilities to catchments",
-      "sql": "INSTALL spatial; LOAD spatial;\nWITH basins AS (SELECT * FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input))),\nfacilities(facility_id, x, y) AS (VALUES ('upstream-plant', 500015.0, 4100055.0), ('outside-plant', 500095.0, 4100055.0))\nSELECT b.station_id, f.facility_id, b.area_m2, b.boundary_limited\nFROM basins b JOIN facilities f ON ST_Covers(ST_GeomFromWKB(b.geometry_wkb), ST_Point(f.x, f.y))\nORDER BY b.station_id, f.facility_id",
+      "sql": "INSTALL spatial; LOAD spatial;\nWITH basins AS (SELECT * FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS gauges(station_id, x, y)))),\nfacilities(facility_id, x, y) AS (VALUES ('upstream-plant', 500015.0, 4100055.0), ('outside-plant', 500095.0, 4100055.0))\nSELECT b.station_id, f.facility_id, b.area_m2, b.boundary_limited\nFROM basins b JOIN facilities f ON ST_Covers(ST_GeomFromWKB(b.geometry_wkb), ST_Point(f.x, f.y))\nORDER BY b.station_id, f.facility_id",
       "rows": [
         [
           "outlet",

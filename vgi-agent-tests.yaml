@@ -2,27 +2,11 @@
 # `vgi-lint lint --ai` runs an agent on each prompt and grades it with check_sql.
 # See https://github.com/Query-farm/vgi-lint-check (VGI920).
 tasks:
-  - name: formal_greeting
-    reference_sql: SELECT hydrology.examples.greet('Grace', 'formal') AS greeting
-  - name: sum_of_squares
-    reference_sql: SELECT sum(squared) AS total FROM hydrology.examples.sequence_table(10)
-  - name: stepped_sequence
-    reference_sql: SELECT n FROM hydrology.examples.sequence_table(4, step := 5) ORDER BY n
-  # Reads the public demo API (https://vgi-starter-api.query-farm.services/v1).
-  - name: items_per_category
-    check_sql: >-
-      SELECT count(*) = 3 AND sum(items) = 25
-      FROM (SELECT category, count(*) AS items
-            FROM hydrology.examples.fetch_items('https://vgi-starter-api.query-farm.services/v1') GROUP BY category)
-
-  - name: gis_demo_input
-    reference_sql: "SELECT station_id FROM hydrology.main.demo_input"
-
   - name: gis_catchments
-    reference_sql: "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) ORDER BY station_id"
+    reference_sql: "SELECT station_id, cell_count, area_m2 FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS g(station_id, x, y))) ORDER BY station_id"
 
   - name: gis_landcover
-    reference_sql: "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM hydrology.main.demo_input)) WHERE status='ok'))"
+    reference_sql: "SELECT sum(area_m2), min(coverage_fraction) FROM hydrology.main.landcover((SELECT station_id, geometry_wkb FROM hydrology.main.catchments((SELECT * FROM (VALUES ('outlet', 500035.0, 4100005.0)) AS g(station_id, x, y))) WHERE status='ok'))"
 
   # Composed: catchments -> landcover. West has no class-20 land, so answers that filter
   # landcover to class 20 before joining drop it; the grader keeps it at 0.0.

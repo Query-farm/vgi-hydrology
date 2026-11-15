@@ -19,7 +19,7 @@ make check
 
 ## Analysis contract
 
-`catchments((SELECT station_id, x, y FROM stations), ...)` returns independently delineated upstream polygons, areas, selected outlets and boundary flags. `landcover((SELECT station_id, geometry_wkb FROM catchments), ...)` returns categorical class counts, areas and coverage fractions. `demo_input` is a table of one monitoring station.
+`catchments((SELECT station_id, x, y FROM stations), ...)` returns independently delineated upstream polygons, areas, selected outlets and boundary flags. `landcover((SELECT station_id, geometry_wkb FROM catchments), ...)` returns categorical class counts, areas and coverage fractions.
 
 **Acceptance:** the outlet drains 49 cells / 4,900 m². Land cover has 21 class-10 cells and 28 class-20 cells, conserving the catchment area. SQL finds the upstream facility and excludes the outside facility. Nested outlets retain their complete upstream areas.
 
@@ -76,14 +76,14 @@ WKB is an ordinary SQL BLOB with an explicit companion CRS, not an automatically
 ## Verification and provenance
 
 - Scientific fixtures and edge cases: [tests/test_analysis.py](tests/test_analysis.py).
-- Real SQL across stdio, launch and HTTP: [test/sql/gis.test](test/sql/gis.test), run by `make check` alongside the preserved SDK regression suite.
+- Real SQL across stdio, launch and HTTP: [test/sql/gis.test](test/sql/gis.test), run by `make check`.
 - Stock DuckDB contract: `validation/stock-duckdb.json` (generated locally).
 - Full local checks: `validation/production-check.log` (local evidence); unmodified starter baseline: `validation/baseline.log` (local evidence).
 - Worker language: Python, pinned locally to 3.13. SDK: `vgi-python 0.51.1` with the starter's `>=0.51.1,<0.52` compatibility bound retained.
 - Starter: [Query-farm/vgi-starter-python](https://github.com/Query-farm/vgi-starter-python), commit `9cca9105474d6e0052b8e343c8ea21f3d1a7503c`, template 1.3.0.
 - Stock engine: DuckDB 2.0.0, signed VGI extension `e75482339d` from `query_farm`. The starter integration runner is separately pinned to `haybarn-unittest 2.0.0rc11`; it is not the stock DuckDB check.
 
-`make check` includes formatting, Ruff, strict mypy, docstring checks, unit tests, all three SQL transports, executed metadata examples and stock DuckDB assertions. `make lint-ai` is an optional agent evaluation and is not part of the completed checks. The `examples` schema preserves starter functions; GIS functions live in `main`. Tests use synthetic known-answer fixtures, not a claim of production accuracy on every dataset.
+`make check` includes formatting, Ruff, strict mypy, docstring checks, unit tests, all three SQL transports, executed metadata examples and stock DuckDB assertions. `make lint-ai` is an optional agent evaluation and is not part of the completed checks. All functions live in the `main` schema. Tests use synthetic known-answer fixtures, not a claim of production accuracy on every dataset.
 
 Run `make release-check` to build a wheel from the source archive and verify its installed SQL interface outside the checkout. `make verify-container` builds locked runtime dependencies and checks every stock SQL assertion through a non-root, read-only HTTP container. See [PRODUCTION.md](PRODUCTION.md) for deployment, capacity limits, release evidence and operational boundaries.
 
@@ -95,5 +95,4 @@ Source and support: [Query-farm/vgi-hydrology](https://github.com/Query-farm/vgi
 
 [Compare upstream catchments](notebooks/README.md) follows station snapping, land-cover
 composition and facility inclusion through the published worker, with mapped results
-and a standalone parameter experiment. A separate starter-schema example reconciles
-a local paginated inventory against an independent plan. Both run from the notebook directory alone.
+and a standalone parameter experiment. It runs from the notebook directory alone.
