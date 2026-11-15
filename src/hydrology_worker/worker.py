@@ -23,7 +23,7 @@ from vgi import Worker
 from vgi.catalog import Catalog, Schema
 
 from .analysis import GIS_DESCRIPTION, GIS_FUNCTIONS
-from .meta import CATALOG_NAME, CATALOG_TAGS, SCHEMA_CATEGORIES, SOURCE_URL, keywords_array
+from .meta import CATALOG_NAME, CATALOG_REFERENCES_MD, CATALOG_TAGS, SCHEMA_CATEGORIES, SOURCE_URL, keywords_array
 
 # One-paragraph catalog description shown in directories (VGI001); the long
 # analysis guidance lives in the vgi.doc_md / vgi.doc_llm tags.
@@ -68,7 +68,8 @@ class HydrologyWorker(Worker):
             "vgi.doc_md": "## GIS analysis\n\n" + GIS_DESCRIPTION + "\n\n### SQL workflow\n\n"
             "Pass query results to the main schema functions, retaining IDs for joins. "
             "Use bundled synthetic data to try the executable examples without network access. "
-            "CRS, coverage, inference limits and resource bounds are explicit function parameters.",
+            "CRS, coverage, inference limits and resource bounds are explicit function parameters."
+            + CATALOG_REFERENCES_MD,
             "vgi.subtitle": "Upstream catchments and land-cover summaries for monitoring stations.",
         },
         schemas=[

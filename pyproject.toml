@@ -1,6 +1,6 @@
 [project]
 name = "vgi-hydrology-worker"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python GIS hydrology analysis exposed as VGI SQL functions."
 readme = "README.md"
 license = "0BSD"

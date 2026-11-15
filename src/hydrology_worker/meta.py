@@ -31,6 +31,19 @@ SCHEMA_CATEGORIES = [
 ]
 
 
+# Upstream specs, data providers and libraries the catalog docs link to (VGI183).
+CATALOG_REFERENCES_MD = (
+    "\n\n## Sources and references\n\n"
+    "- [PyFlwDir](https://deltares.github.io/pyflwdir/latest/): the Deltares flow-direction library; "
+    "[pyflwdir.from_dem](https://deltares.github.io/pyflwdir/latest/_generated/pyflwdir.from_dem.html) "
+    "fills depressions and derives the D8 network used for catchments.\n"
+    "- [Rasterio](https://rasterio.readthedocs.io/): reads the DEM and land-cover rasters and polygonizes "
+    "catchment masks.\n"
+    "- [Shapely](https://shapely.readthedocs.io/) and [pyproj](https://pyproj4.github.io/pyproj/stable/): "
+    "geometry handling and the coordinate transforms between station, DEM and land-cover CRSs."
+)
+
+
 def keywords_array(keywords: str) -> str:
     """Turn ``"a, b, c"`` into the JSON array string ``vgi.keywords`` requires."""
     return json.dumps([k.strip() for k in keywords.split(",") if k.strip()])

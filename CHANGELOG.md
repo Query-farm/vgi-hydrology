@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Docs link to upstream sources: the catalog `vgi.doc_md` gains a Sources and references section linking PyFlwDir (and its `from_dem` D8 routine), Rasterio, Shapely and pyproj (VGI183).
+
 ## 0.2.0 (2026-11-14)
 
 - Removed the starter template's demo schema (`examples.greet` / `fetch_items` / `sequence_table`), `demo_input` and the placeholder `hydrology_api` secret type. The worker now exposes only `main.catchments` and `main.landcover` and needs no credentials.
