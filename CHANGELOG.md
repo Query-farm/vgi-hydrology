@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (2026-11-16)
+
+- Bump vgi-python to 0.52.2.
+
 ## 0.2.1
 
 - Docs link to upstream sources: the catalog `vgi.doc_md` gains a Sources and references section linking PyFlwDir (and its `from_dem` D8 routine), Rasterio, Shapely and pyproj (VGI183).
