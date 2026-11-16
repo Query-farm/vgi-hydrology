@@ -3,6 +3,7 @@
 ## 0.2.2 (2026-11-16)
 
 - Bump vgi-python to 0.52.2.
+- Move to Python 3.14: `requires-python >=3.14`, CI, the Docker image and lint tooling target 3.14.
 
 ## 0.2.1
 
